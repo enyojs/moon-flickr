@@ -1,10 +1,5 @@
 enyo.kind({
-	name: "MyApp.Application",
+	name: "flickr.Application",
 	kind: "enyo.Application",
-	components: [{
-		name: "messageController",
-		kind: "enyo.Controller",
-		message: $L("Hello World")
-	}],
-	view: "MyApp.MainView"
+	view: "flickr.MainView"
 });
