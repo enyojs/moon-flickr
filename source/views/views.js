@@ -1,50 +1,102 @@
+/**
+	For simple applications, you might define all of your views in this file.  
+	For more complex applications, you might choose to separate these kind definitions 
+	into multiple files under this folder.
+*/
+
 enyo.kind({
 	name: "flickr.MainView",
-	pattern: "alwaysviewing",
 	classes: "moon enyo-fit",
 	handlers: {
 		onRequestPushPanel: "pushPanel",
-		onRequestFullScreen: "fullscreen"
+		onRequestFullScreen: "fullscreen",
+		onRequestSlideshowStart: "startSlideshow"
 	},
 	components: [
-		{kind: "enyo.ImageView", classes: "enyo-fit", src:"assets/splash.png"},
+		{kind: "flickr.Slideshow", classes: "enyo-fit", src:"assets/splash.png", style:"-webkit-transform: scale3d(1,1,1);"},
 		{kind: "moon.Panels", classes: "enyo-fit", pattern: "alwaysviewing", popOnBack:true, components: [
 			{kind: "flickr.SearchPanel"}
 		]}
 	],
 	bindings: [
-		{from: ".$.panels.showing", to:".$.imageView.style", transform: function(val) {
-			return val ? "-webkit-filter: blur(20px); -webkit-transform: scale3d(1,1,1);" : null;
-		}}
+		{from: ".$.panels.showing", to:".panelsShowing"}
 	],
+	create: function() {
+		this.inherited(arguments);
+		this.set("photos", new flickr.SearchCollection());
+		this.$.searchPanel.set("photos", this.photos);
+		this.$.slideshow.set("photos", this.photos);
+	},
 	pushPanel: function(inSender, inEvent) {
 		this.$.panels.pushPanel(inEvent.panel);
 	},
 	fullscreen: function(inSender, inEvent) {
-		this.$.imageView.setSrc(inEvent.model.get("original"));
+		this.$.slideshow.setSrc(inEvent.model.get("original"));
 		this.$.panels.hide();
+	},
+	startSlideshow: function() {
+		this.$.slideshow.start();
+		this.$.panels.hide();
+	},
+	panelsShowingChanged: function() {
+		this.$.slideshow.applyStyle("-webkit-filter", this.panelsShowing ? "blur(20px)" : null);
+		if (this.panelsShowing) {
+			this.$.slideshow.stop();
+		}
+	}
+});
+
+enyo.kind({
+	name: "flickr.Slideshow",
+	kind: "enyo.ImageView",
+	published: {
+		photos: null,
+		delay: 3000
+	},
+	bindings: [
+		{from: ".photos.selected.original", to: ".src"}
+	],
+	index: 0,
+	start: function() {
+		this.next(true);
+	},
+	next: function(start) {
+		if (!start) {
+			this.index++;
+			if (this.index > this.photos.length) {
+				this.index = 0;
+			}
+		}
+		this.setSrc(this.photos.at(this.index).get("original"));
+		this.startJob("slideshow", "next", this.delay);
+	},
+	stop: function() {
+		this.stopJob("slideshow");
 	}
 });
 
 enyo.kind({
 	name: "flickr.SearchPanel",
 	kind: "moon.Panel",
-	classes: "",
-	style: "",
+	published: {
+		photos: null
+	},
 	events: {
-		onRequestPushPanel: ""
+		onRequestPushPanel: "",
+		onRequestSlideshowStart: ""
 	},
 	handlers: {
 		onInputHeaderChange: "search"
 	},
 	title: "Search Flickr",
 	titleBelow: "Enter search term above",
-	headerOptions: {kind: "moon.InputHeader", dismissOnEnter:true},
+	headerOptions: {inputMode: true, dismissOnEnter: true},
 	headerComponents: [
-		{kind: "moon.Spinner", content: "Loading..."}
+		{kind: "moon.Spinner", content: "Loading..."},
+		{kind: "moon.Button", small:true, name:"startButton", content: "Start Slideshow", ontap:"startSlideshow"}
 	],
 	components: [
-		{kind: "moon.DataGridList", fit:true, selection:false, name: "resultList", minWidth: 250, minHeight: 300, ontap:"itemSelected", components: [
+		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap:"itemSelected", components: [
 			{kind: "moon.GridListImageItem", imageSizing: "cover", useSubCaption:false, centered:false, bindings: [
 				{from: ".model.title", to:".caption"},
 				{from: ".model.thumbnail", to:".source"}
@@ -52,17 +104,19 @@ enyo.kind({
 		]}
 	],
 	bindings: [
-		{from: ".$.resultList.collection.isFetching", to:".$.spinner.showing"}
+		{from: ".photos", to: ".$.resultList.collection"},
+		{from: ".$.resultList.collection.isFetching", to:".$.spinner.showing"},
+		{from: ".$.resultList.collection.isFetching", to:".$.startButton.showing", kind: "enyo.InvertBooleanBinding"}
 	],
-	create: function() {
-		this.inherited(arguments);
-		this.$.resultList.set("collection", new flickr.SearchCollection());
-	},
 	search: function(inSender, inEvent) {
 		this.$.resultList.collection.set("searchText", inEvent.originator.get("value"));
 	},
 	itemSelected: function(inSender, inEvent) {
+		this.photos.set("selected", inEvent.model);
 		this.doRequestPushPanel({panel: {kind: "flickr.DetailPanel", model: inEvent.model}});
+	},
+	startSlideshow: function() {
+		this.doRequestSlideshowStart();
 	}
 });
 
@@ -88,7 +142,7 @@ enyo.kind({
 		{from: ".model.title", to: ".title"},
 		{from: ".model.original", to: ".$.image.src"},
 		{from: ".model.username", to: ".titleBelow", transform: function(val) {
-			return val ? "By " + val : "";
+			return "By " + (val || " unknown user");
 		}},
 		{from: ".model.taken", to: ".subTitleBelow", transform: function(val) {
 			return val ? "Taken " + val : "";
@@ -145,6 +199,7 @@ enyo.kind({
 	fetch: function(opts) {
 		this.params = {
 			method: "flickr.photos.search",
+			sort: "interestingness-desc",
 			per_page: 50,
 			text: this.searchText
 		};
@@ -159,19 +214,13 @@ enyo.kind({
 	name: "flickr.Source",
 	kind: "enyo.JsonpSource",
 	urlRoot: "http://api.flickr.com/services/rest/",
-	api_key: "2a21b46e58d207e4888e1ece0cb149a5",
 	fetch: function(rec, opts) {
-		opts.params = rec.params || {};
-		enyo.mixin(opts.params, {
-			api_key: this.api_key,
-			format: "json",
-		});
 		opts.callbackName = "jsoncallback";
+		opts.params = enyo.clone(rec.params);
+		opts.params.api_key = "2a21b46e58d207e4888e1ece0cb149a5";
+		opts.params.format = "json";
 		this.inherited(arguments);
-	},
-	destroy: function(rec, opts) {
-		opts.success();
 	}
 });
-enyo.store.addSources({flickr:"flickr.Source"});
+enyo.store.addSources({flickr: "flickr.Source"});
 enyo.store.ignoreDuplicates = true;
