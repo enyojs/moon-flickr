@@ -1,12 +1,12 @@
 enyo.depends(
 	// Cordova (PhoneGap) library
-	"$lib/enyo-cordova",
+	// "$lib/enyo-cordova",
 	// webOS-specific kind library
-	"$lib/enyo-webos",
+	// "$lib/enyo-webos",
 	// Layout library
 	"$lib/layout",
 	// Internationalization library
-	"$lib/enyo-ilib",
+	// "$lib/enyo-ilib",
 	// Moonstone UI library
 	"$lib/moonstone",
 	// Focus support library for TV applications
