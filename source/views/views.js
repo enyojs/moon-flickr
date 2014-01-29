@@ -13,7 +13,7 @@ enyo.kind({
 		onRequestSlideshowStart: "startSlideshow"
 	},
 	components: [
-		{kind: "flickr.Slideshow", classes: "enyo-fit", src:"assets/splash.png", style:"-webkit-transform: scale3d(1,1,1);"},
+		{kind: "flickr.Slideshow", classes: "enyo-fit", src:"assets/splash.png"},
 		{kind: "moon.Panels", classes: "enyo-fit", pattern: "alwaysviewing", popOnBack:true, components: [
 			{kind: "flickr.SearchPanel"}
 		]}
@@ -31,7 +31,7 @@ enyo.kind({
 		this.$.panels.pushPanel(inEvent.panel);
 	},
 	fullscreen: function(inSender, inEvent) {
-		this.$.slideshow.setSrc(inEvent.model.get("original"));
+		this.$.slideshow.set("src", inEvent.model.get("original"));
 		this.$.panels.hide();
 	},
 	startSlideshow: function() {
@@ -150,8 +150,10 @@ enyo.kind({
 			return val ? "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(val) : "";
 		}}
 	],
-	transitionFinished: function() {
-		this.model.fetch();
+	transitionFinished: function(inInfo) {
+		if (inInfo.from < inInfo.to) {
+			this.model.fetch();
+		}
 	},
 	requestFullScreen: function() {
 		this.doRequestFullScreen({model: this.model});
@@ -179,6 +181,7 @@ enyo.kind({
 		thumbnail: ["farm", "server", "id", "secret"],
 		original: ["farm", "server", "id", "secret"]
 	},
+	getUrl: null,
 	fetch: function(opts) {
 		this.params = {
 			method: "flickr.photos.getinfo",
@@ -186,9 +189,7 @@ enyo.kind({
 		};
 		return this.inherited(arguments);
 	},
-	getUrl: null,
 	parse: function(data) {
-		var urlprefix;
 		data = data.photo || data;
 		data.title = data.title._content || data.title;
 		data.username = data.owner && data.owner.realname;
