@@ -39,7 +39,6 @@ enyo.kind({
 		this.$.panels.hide();
 	},
 	panelsShowingChanged: function() {
-		this.$.slideshow.applyStyle("-webkit-filter", this.panelsShowing ? "blur(20px)" : null);
 		if (this.panelsShowing) {
 			this.$.slideshow.stop();
 		}
@@ -49,13 +48,11 @@ enyo.kind({
 enyo.kind({
 	name: "flickr.Slideshow",
 	kind: "enyo.ImageView",
+	src: "assets/splash.png",
 	published: {
 		photos: null,
 		delay: 3000
 	},
-	bindings: [
-		{from: ".photos.selected.original", to: ".src"}
-	],
 	index: 0,
 	start: function() {
 		this.next(true);
@@ -72,6 +69,7 @@ enyo.kind({
 	},
 	stop: function() {
 		this.stopJob("slideshow");
+		this.setSrc("assets/splash.png");
 	}
 });
 
@@ -92,11 +90,11 @@ enyo.kind({
 	titleBelow: "Enter search term above",
 	headerOptions: {inputMode: true, dismissOnEnter: true},
 	headerComponents: [
-		{kind: "moon.Spinner", content: "Loading..."},
-		{kind: "moon.Button", small:true, name:"startButton", content: "Start Slideshow", ontap:"startSlideshow"}
+		{kind: "moon.Spinner", content: "Loading...", name: "spinner"},
+		{kind: "moon.Button", small:true, name:"startButton", content: "Start Slideshow", ontap: "startSlideshow"}
 	],
 	components: [
-		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap:"itemSelected", components: [
+		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap: "itemSelected", components: [
 			{kind: "moon.GridListImageItem", imageSizing: "cover", useSubCaption:false, centered:false, bindings: [
 				{from: ".model.title", to:".caption"},
 				{from: ".model.thumbnail", to:".source"}
@@ -105,8 +103,8 @@ enyo.kind({
 	],
 	bindings: [
 		{from: ".photos", to: ".$.resultList.collection"},
-		{from: ".$.resultList.collection.isFetching", to:".$.spinner.showing"},
-		{from: ".$.resultList.collection.isFetching", to:".$.startButton.showing", kind: "enyo.InvertBooleanBinding"}
+		{from: ".photos.isFetching", to:".$.spinner.showing"},
+		{from: ".photos.length", to:".$.startButton.showing"}
 	],
 	search: function(inSender, inEvent) {
 		this.$.resultList.collection.set("searchText", inEvent.originator.get("value"));
@@ -126,8 +124,9 @@ enyo.kind({
 	events: {
 		onRequestFullScreen: ""
 	},
+	layoutKind: "FittableColumnsLayout",
 	components: [
-		{kind: "moon.Image", sizing:"contain", style:"display:block;", fit:true, ontap:"requestFullScreen"}
+		{kind: "moon.Image", name: "image", fit: true, sizing:"contain", ontap:"requestFullScreen"}
 	],
 	headerComponents: [
 		{kind: "moon.Button", ontap:"requestFullScreen", small:true, content:"View Fullscreen"},
@@ -162,7 +161,24 @@ enyo.kind({
 enyo.kind({
 	name: "flickr.ImageModel",
 	kind: "enyo.Model",
+	readOnly: true,
 	defaultSource: "flickr",
+	attributes: {
+		thumbnail: function() {
+			return "http://farm" + this.get("farm") +
+				".static.flickr.com/" + this.get("server") +
+				"/" + this.get("id") + "_" + this.get("secret") + "_m.jpg";
+		},
+		original: function() {
+			return "http://farm" + this.get("farm") +
+				".static.flickr.com/" + this.get("server") +
+				"/" + this.get("id") + "_" + this.get("secret") + ".jpg";
+		}
+	},
+	computed: {
+		thumbnail: ["farm", "server", "id", "secret"],
+		original: ["farm", "server", "id", "secret"]
+	},
 	fetch: function(opts) {
 		this.params = {
 			method: "flickr.photos.getinfo",
@@ -175,9 +191,6 @@ enyo.kind({
 		var urlprefix;
 		data = data.photo || data;
 		data.title = data.title._content || data.title;
-		urlprefix = "http://farm" + data.farm + ".static.flickr.com/" + data.server + "/" + data.id + "_" + data.secret;
-		data.thumbnail = urlprefix + "_m.jpg";
-		data.original = urlprefix + ".jpg";
 		data.username = data.owner && data.owner.realname;
 		data.taken = data.dates && data.dates.taken;
 		return data;
@@ -193,7 +206,7 @@ enyo.kind({
 		searchText: null,
 	},
 	searchTextChanged: function() {
-		this.removeAll();
+		this.destroyAll();
 		this.fetch();
 	},
 	fetch: function(opts) {
@@ -223,4 +236,3 @@ enyo.kind({
 	}
 });
 enyo.store.addSources({flickr: "flickr.Source"});
-enyo.store.ignoreDuplicates = true;
