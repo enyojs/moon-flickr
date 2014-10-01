@@ -7,7 +7,7 @@
 enyo.kind({
 	name: "flickr.Source",
 	kind: "enyo.JsonpSource",
-	urlRoot: "http://api.flickr.com/services/rest/",
+	urlRoot: "https://api.flickr.com/services/rest/",
 	fetch: function(rec, opts) {
 		opts.callbackName = "jsoncallback";
 		opts.params = enyo.clone(rec.params);
