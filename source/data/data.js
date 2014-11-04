@@ -7,7 +7,7 @@
 enyo.kind({
 	name: "flickr.Source",
 	kind: "enyo.JsonpSource",
-	urlRoot: "http://api.flickr.com/services/rest/",
+	urlRoot: "https://api.flickr.com/services/rest/",
 	fetch: function(rec, opts) {
 		opts.callbackName = "jsoncallback";
 		opts.params = enyo.clone(rec.params);
@@ -25,12 +25,12 @@ enyo.kind({
 	defaultSource: "flickr",
 	attributes: {
 		thumbnail: function() {
-			return "http://farm" + this.get("farm") +
+			return "https://farm" + this.get("farm") +
 				".static.flickr.com/" + this.get("server") +
 				"/" + this.get("id") + "_" + this.get("secret") + "_m.jpg";
 		},
 		original: function() {
-			return "http://farm" + this.get("farm") +
+			return "https://farm" + this.get("farm") +
 				".static.flickr.com/" + this.get("server") +
 				"/" + this.get("id") + "_" + this.get("secret") + ".jpg";
 		}
