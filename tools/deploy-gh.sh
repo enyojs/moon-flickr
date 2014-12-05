@@ -1,1 +1,4 @@
-tools/deploy.sh -T && cp -rf deploy/moon-flickr/* deploy/gh-pages/ && cp -rf enyo deploy/gh-pages/ && cp -rf lib deploy/gh-pages/ && rm -rf  && (cd deploy/gh-pages; git push origin gh-pages);
+# Can't deploy into the directory because it will wipe the .git directory
+# Using rsync to delete unneeded files
+tools/deploy.sh -T && rsync -rpt --delete --exclude=.git deploy/moon-flickr/ deploy/gh-pages/
+echo "cd into the deploy/gh-pages directory and commit changes to origin gh-pages"
