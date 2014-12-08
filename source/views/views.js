@@ -19,7 +19,7 @@ enyo.kind({
 		]}
 	],
 	bindings: [
-		{from: ".$.panels.showing", to:".panelsShowing"}
+		{from: "$.panels.showing", to:"panelsShowing"}
 	],
 	create: function() {
 		this.inherited(arguments);
@@ -60,16 +60,16 @@ enyo.kind({
 	next: function(start) {
 		if (!start) {
 			this.index++;
-			if (this.index > this.photos.length) {
+			if (this.index >= this.photos.length) {
 				this.index = 0;
 			}
 		}
-		this.setSrc(this.photos.at(this.index).get("original"));
+		this.set("src", this.photos.at(this.index).get("original"));
 		this.startJob("slideshow", "next", this.delay);
 	},
 	stop: function() {
 		this.stopJob("slideshow");
-		this.setSrc("assets/splash.png");
+		this.set("src", "assets/splash.png");
 	}
 });
 
@@ -96,15 +96,17 @@ enyo.kind({
 	components: [
 		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap: "itemSelected", components: [
 			{kind: "moon.GridListImageItem", imageSizing: "cover", useSubCaption:false, centered:false, bindings: [
-				{from: ".model.title", to:".caption"},
-				{from: ".model.thumbnail", to:".source"}
+				{from: "model.title", to:"caption"},
+				{from: "model.thumbnail", to:"source"}
 			]}
 		]}
 	],
 	bindings: [
-		{from: ".photos", to: ".$.resultList.collection"},
-		{from: ".photos.isFetching", to:".$.spinner.showing"},
-		{from: ".photos.length", to:".$.startButton.showing"}
+		{from: "photos", to: "$.resultList.collection"},
+		{from: "photos.status", to:"$.spinner.showing", transform: function(value) {
+			return this.photos.isBusy();
+		}},
+		{from: "photos.length", to:"$.startButton.showing"}
 	],
 	search: function(inSender, inEvent) {
 		this.$.resultList.collection.set("searchText", inEvent.originator.get("value"));
@@ -138,15 +140,15 @@ enyo.kind({
 		]}
 	],
 	bindings: [
-		{from: ".model.title", to: ".title"},
-		{from: ".model.original", to: ".$.image.src"},
-		{from: ".model.username", to: ".titleBelow", transform: function(val) {
+		{from: "model.title", to: "title"},
+		{from: "model.original", to: "$.image.src"},
+		{from: "model.username", to: "titleBelow", transform: function(val) {
 			return "By " + (val || " unknown user");
 		}},
-		{from: ".model.taken", to: ".subTitleBelow", transform: function(val) {
+		{from: "model.taken", to: "subTitleBelow", transform: function(val) {
 			return val ? "Taken " + val : "";
 		}},
-		{from: ".model.original", to: ".$.qr.src", transform: function(val) {
+		{from: "model.original", to: "$.qr.src", transform: function(val) {
 			return val ? "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(val) : "";
 		}}
 	],

@@ -16,30 +16,28 @@ enyo.kind({
 		this.inherited(arguments);
 	}
 });
-enyo.store.addSources({flickr: "flickr.Source"});
+
+new flickr.Source({name: "flickr"});
 
 enyo.kind({
 	name: "flickr.ImageModel",
 	kind: "enyo.Model",
-	readOnly: true,
-	defaultSource: "flickr",
-	attributes: {
-		thumbnail: function() {
-			return "https://farm" + this.get("farm") +
-				".static.flickr.com/" + this.get("server") +
-				"/" + this.get("id") + "_" + this.get("secret") + "_m.jpg";
-		},
-		original: function() {
-			return "https://farm" + this.get("farm") +
-				".static.flickr.com/" + this.get("server") +
-				"/" + this.get("id") + "_" + this.get("secret") + ".jpg";
-		}
+	options: { parse: true },
+	source: "flickr",
+	computed: [
+		{method: "thumbnail", path: ["farm", "server", "id", "secret"]},
+		{method: "original", path: ["farm", "server", "id", "secret"]}
+	],
+	thumbnail: function() {
+		return "https://farm" + this.get("farm") +
+			".static.flickr.com/" + this.get("server") +
+			"/" + this.get("id") + "_" + this.get("secret") + "_m.jpg";
 	},
-	computed: {
-		thumbnail: ["farm", "server", "id", "secret"],
-		original: ["farm", "server", "id", "secret"]
+	original: function() {
+		return "https://farm" + this.get("farm") +
+			".static.flickr.com/" + this.get("server") +
+			"/" + this.get("id") + "_" + this.get("secret") + ".jpg";
 	},
-	getUrl: null,
 	fetch: function(opts) {
 		this.params = {
 			method: "flickr.photos.getinfo",
@@ -60,12 +58,13 @@ enyo.kind({
 	name: "flickr.SearchCollection",
 	kind: "enyo.Collection",
 	model: "flickr.ImageModel",
-	defaultSource: "flickr",
+	source: "flickr",
+	options: { parse: true },
 	published: {
-		searchText: null,
+		searchText: null
 	},
 	searchTextChanged: function() {
-		this.destroyAll();
+		this.empty({destroy: true});
 		this.fetch();
 	},
 	fetch: function(opts) {
