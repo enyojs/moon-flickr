@@ -5,11 +5,17 @@
 */
 
 enyo.kind({
-	name: "flickr.Application",
+	name: "myapp.Application",
 	kind: "enyo.Application",
-	view: "flickr.MainView"
+	view: "flickr.MainView",
+	create: function() {
+		//create a new instance of the FluxStore
+		this.store = new flickr.Store();
+
+		this.inherited(arguments);
+	}
 });
 
 enyo.ready(function () {
-	new flickr.Application({name: "app"});
+	new myapp.Application({name: "app"});
 });

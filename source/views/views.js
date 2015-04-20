@@ -1,6 +1,6 @@
 /**
-	For simple applications, you might define all of your views in this file.  
-	For more complex applications, you might choose to separate these kind definitions 
+	For simple applications, you might define all of your views in this file.
+	For more complex applications, you might choose to separate these kind definitions
 	into multiple files under this folder.
 */
 
@@ -21,12 +21,6 @@ enyo.kind({
 	bindings: [
 		{from: "$.panels.showing", to:"panelsShowing"}
 	],
-	create: function() {
-		this.inherited(arguments);
-		this.set("photos", new flickr.SearchCollection());
-		this.$.searchPanel.set("photos", this.photos);
-		this.$.slideshow.set("photos", this.photos);
-	},
 	pushPanel: function(inSender, inEvent) {
 		this.$.panels.pushPanel(inEvent.panel);
 	},
@@ -54,6 +48,11 @@ enyo.kind({
 		delay: 3000
 	},
 	index: 0,
+	create: function() {
+		this.inherited(arguments);
+		this.photos = new flickr.Collection();
+		enyo.FluxDispatcher.subscribe(this.app.store.id, enyo.bind(this, this.update));
+	},
 	start: function() {
 		this.next(true);
 	},
@@ -70,6 +69,13 @@ enyo.kind({
 	stop: function() {
 		this.stopJob("slideshow");
 		this.set("src", "assets/splash.png");
+	},
+	update: function(data) {
+		console.log("Slideshow update");
+		if (data && data.photos && data.photos.photo) {
+			this.photos.empty({destroy:true});
+			this.photos.add(data && data.photos && data.photos.photo);
+		}
 	}
 });
 
@@ -90,8 +96,8 @@ enyo.kind({
 	titleBelow: "Enter search term above",
 	headerOptions: {inputMode: true, dismissOnEnter: true},
 	headerComponents: [
-		{kind: "moon.Spinner", content: "Loading...", name: "spinner"},
-		{kind: "moon.Button", small:true, name:"startButton", content: "Start Slideshow", ontap: "startSlideshow"}
+		{kind: "moon.Spinner", content: "Loading...", showing:false, name: "spinner"},
+		{kind: "moon.Button", small:true, name:"startButton", showing:false, content: "Start Slideshow", ontap: "startSlideshow"}
 	],
 	components: [
 		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap: "itemSelected", components: [
@@ -101,18 +107,40 @@ enyo.kind({
 			]}
 		]}
 	],
-	bindings: [
-		{from: "photos", to: "$.resultList.collection"},
-		{from: "photos.status", to:"$.spinner.showing", transform: function(value) {
-			return this.photos.isBusy();
-		}},
-		{from: "photos.length", to:"$.startButton.showing"}
-	],
+	create: function() {
+		this.inherited(arguments);
+		this.set("$.resultList.collection", new flickr.Collection());
+		enyo.FluxDispatcher.subscribe(this.app.store.id, enyo.bind(this, this.update));
+	},
 	search: function(inSender, inEvent) {
-		this.$.resultList.collection.set("searchText", inEvent.originator.get("value"));
+		enyo.FluxDispatcher.notify(this.app.store.id, {
+			actionType: flickr.Constants.Actions.search,
+			payload: {
+				params : {
+					method: "flickr.photos.search",
+					sort: "interestingness-desc",
+					per_page: 50,
+					text: inEvent.originator.get("value")
+				}
+			}
+		});
+		this.$.spinner.setShowing(true);
+	},
+	update: function(data) {
+		console.log("SearchPanel update");
+		if (data && data.photos && data.photos.photo) {
+			this.$.resultList.collection.empty({destroy:true});
+			this.$.resultList.collection.add(data && data.photos && data.photos.photo);
+			this.$.spinner.setShowing(false);
+		}
+		if (this.$.resultList.collection.length) {
+			this.$.startButton.setShowing(true);
+		} else {
+			this.$.startButton.setShowing(false);
+		}
 	},
 	itemSelected: function(inSender, inEvent) {
-		this.photos.set("selected", inEvent.model);
+		this.$.resultList.collection.set("selected", inEvent.model);
 		this.doRequestPushPanel({panel: {kind: "flickr.DetailPanel", model: inEvent.model}});
 	},
 	startSlideshow: function() {
@@ -139,22 +167,13 @@ enyo.kind({
 			]}
 		]}
 	],
-	bindings: [
-		{from: "model.title", to: "title"},
-		{from: "model.original", to: "$.image.src"},
-		{from: "model.username", to: "titleBelow", transform: function(val) {
-			return "By " + (val || " unknown user");
-		}},
-		{from: "model.taken", to: "subTitleBelow", transform: function(val) {
-			return val ? "Taken " + val : "";
-		}},
-		{from: "model.original", to: "$.qr.src", transform: function(val) {
-			return val ? "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(val) : "";
-		}}
-	],
-	transitionFinished: function(inInfo) {
-		if (inInfo.from < inInfo.to) {
-			this.model.fetch();
+	create: function() {
+		this.inherited(arguments);
+		if (this.model) {
+			this.set("title", this.model.get("title"));
+			this.set("$.image.src", this.model.get("original"));
+			this.set("titleBelow", "By " + (this.model.get("username") || " unknown user"));
+			this.set("$.qr.src", this.model.get("original") ? "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(this.model.get("original")) : "");
 		}
 	},
 	requestFullScreen: function() {
