@@ -1,4 +1,5 @@
 enyo.depends(
+	"../enyo/source/2.6.0-pre.4-wip-package.js",
 	// Cordova (PhoneGap) library
 	// "$lib/enyo-cordova",
 	// webOS-specific kind library

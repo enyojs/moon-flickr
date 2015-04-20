@@ -4,8 +4,42 @@
 	these kind definitions into multiple files under this folder.
 */
 
+enyo.singleton({
+	name: 'flickr.Constants.Actions',
+	search: 'search'
+});
+
 enyo.kind({
-	name: "flickr.Source",
+	name: 'flickr.Store',
+	kind: 'enyo.FluxStore',
+	source: 'flickrSource',
+	update: function(action) {
+
+		//handle dispatched actions to the store
+		switch(action.actionType) {
+			case flickr.Constants.Actions.search:
+				this.search(action.payload);
+				break;
+			default:
+				//default code block
+		}
+	},
+	search: function(data) {
+		//do something here with your source
+		this.params = data.params;
+		this.url = "";
+		this.fetch(data);
+	}
+});
+
+/**
+	For simple applications, you might define all of your models, collections,
+	and sources in this file.  For more complex applications, you might choose to separate
+	these kind definitions into multiple files under this folder.
+*/
+
+enyo.kind({
+	name: "flickrSource",
 	kind: "enyo.JsonpSource",
 	urlRoot: "https://api.flickr.com/services/rest/",
 	fetch: function(rec, opts) {
@@ -16,14 +50,13 @@ enyo.kind({
 		this.inherited(arguments);
 	}
 });
+//enyo.Source.create({kind:'flickrSource'});
 
-new flickr.Source({name: "flickr"});
+new flickrSource({name: "flickrSource"});
 
 enyo.kind({
 	name: "flickr.ImageModel",
 	kind: "enyo.Model",
-	options: { parse: true },
-	source: "flickr",
 	computed: [
 		{method: "thumbnail", path: ["farm", "server", "id", "secret"]},
 		{method: "original", path: ["farm", "server", "id", "secret"]}
@@ -37,46 +70,11 @@ enyo.kind({
 		return "https://farm" + this.get("farm") +
 			".static.flickr.com/" + this.get("server") +
 			"/" + this.get("id") + "_" + this.get("secret") + ".jpg";
-	},
-	fetch: function(opts) {
-		this.params = {
-			method: "flickr.photos.getinfo",
-			photo_id: this.get("id")
-		};
-		return this.inherited(arguments);
-	},
-	parse: function(data) {
-		data = data.photo || data;
-		data.title = data.title._content || data.title;
-		data.username = data.owner && data.owner.realname;
-		data.taken = data.dates && data.dates.taken;
-		return data;
 	}
 });
 
 enyo.kind({
-	name: "flickr.SearchCollection",
+	name: "flickr.Collection",
 	kind: "enyo.Collection",
-	model: "flickr.ImageModel",
-	source: "flickr",
-	options: { parse: true },
-	published: {
-		searchText: null
-	},
-	searchTextChanged: function() {
-		this.empty({destroy: true});
-		this.fetch();
-	},
-	fetch: function(opts) {
-		this.params = {
-			method: "flickr.photos.search",
-			sort: "interestingness-desc",
-			per_page: 50,
-			text: this.searchText
-		};
-		return this.inherited(arguments);
-	},
-	parse: function(data) {
-		return data && data.photos && data.photos.photo;
-	}
+	model: "flickr.ImageModel"
 });
