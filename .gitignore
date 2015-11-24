@@ -1,2 +1,4 @@
-/build
-/deploy/moon-flickr
+/node_modules
+node_modules
+lib
+dist

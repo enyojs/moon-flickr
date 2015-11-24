@@ -1,0 +1,40 @@
+{
+  "name": "moon-flickr",
+  "assets": [
+    "assets/*.ico",
+    "assets/*.png"
+  ],
+  "devAssets": [],
+  "styles": [
+    "src/*.css",
+    "src/*.less"
+  ],
+  "main": "index.js",
+  "moduleDir": "src",
+  "version": "0.0.1",
+  "description": "An Enyo-based self contained template to build web applications using HTML, CSS and JavaScript.",
+  "homepage": "http://enyojs.com/",
+  "bugs": "http://jira.enyojs.com/",
+  "keywords": [],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enyojs/moon-flickr.git"
+  },
+  "maintainers": [
+    {
+      "name": "Enyo JS Framework Team",
+      "web": "http://enyojs.com/"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "scripts": {},
+  "devDependencies": {}
+}

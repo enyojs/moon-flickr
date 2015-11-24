@@ -4,8 +4,38 @@
 	into multiple files under this folder.
 */
 
-enyo.kind({
-	name: "flickr.MainView",
+var 
+	kind = require('enyo/kind'),
+
+	Image = require('enyo/Image'),
+	ImageView = require('enyo/ImageView'),
+
+	Panels = require('moonstone/Panels'),
+	Panel = require('moonstone/Panel'),
+	ContextualPopup = require('moonstone/ContextualPopup'),
+	ContextualPopupButton = require('moonstone/ContextualPopupButton'),
+	ContextualPopupDecorator = require('moonstone/ContextualPopupDecorator'),
+	BodyText = require('moonstone/BodyText'),
+	Spinner = require('moonstone/Spinner'),
+	Button = require('moonstone/Button'),
+	MoonImage = require('moonstone/Image'),
+	DataGridList = require('moonstone/DataGridList'),
+	GridListImageItem = require('moonstone/GridListImageItem'),
+	IconButton = require('moonstone/IconButton');
+
+var
+	data = require(../data);
+
+
+module.exports = {
+     MainView: MainView,
+     Slideshow: Slideshow,
+     SearchPanel: SearchPanel,
+     DetailPanel: DetailPanel
+ };
+
+var MainView = kind({
+	name: "MainView",
 	classes: "moon enyo-fit",
 	handlers: {
 		onRequestPushPanel: "pushPanel",
@@ -13,9 +43,9 @@ enyo.kind({
 		onRequestSlideshowStart: "startSlideshow"
 	},
 	components: [
-		{kind: "flickr.Slideshow", classes: "enyo-fit", src:"assets/splash.png"},
-		{kind: "moon.Panels", classes: "enyo-fit", pattern: "alwaysviewing", popOnBack:true, components: [
-			{kind: "flickr.SearchPanel"}
+		{kind: Slideshow, classes: "enyo-fit", src:"assets/splash.png"},
+		{kind: Panels, classes: "enyo-fit", pattern: "alwaysviewing", popOnBack:true, components: [
+			{kind: SearchPanel}
 		]}
 	],
 	bindings: [
@@ -23,7 +53,7 @@ enyo.kind({
 	],
 	create: function() {
 		this.inherited(arguments);
-		this.set("photos", new flickr.SearchCollection());
+		this.set("photos", new data.SearchCollection());
 		this.$.searchPanel.set("photos", this.photos);
 		this.$.slideshow.set("photos", this.photos);
 	},
@@ -45,9 +75,9 @@ enyo.kind({
 	}
 });
 
-enyo.kind({
-	name: "flickr.Slideshow",
-	kind: "enyo.ImageView",
+var Slideshow = kind({
+	name: "Slideshow",
+	kind: ImageView,
 	src: "assets/splash.png",
 	published: {
 		photos: null,
@@ -73,9 +103,9 @@ enyo.kind({
 	}
 });
 
-enyo.kind({
-	name: "flickr.SearchPanel",
-	kind: "moon.Panel",
+var SearchPanel = kind({
+	name: "SearchPanel",
+	kind: Panel,
 	published: {
 		photos: null
 	},
@@ -90,12 +120,12 @@ enyo.kind({
 	titleBelow: "Enter search term above",
 	headerOptions: {inputMode: true, dismissOnEnter: true},
 	headerComponents: [
-		{kind: "moon.Spinner", content: "Loading...", name: "spinner"},
-		{kind: "moon.Button", small:true, name:"startButton", content: "Start Slideshow", ontap: "startSlideshow"}
+		{kind: Spinner, content: "Loading...", name: "spinner"},
+		{kind: Button, small:true, name:"startButton", content: "Start Slideshow", ontap: "startSlideshow"}
 	],
 	components: [
-		{kind: "moon.DataGridList", fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap: "itemSelected", components: [
-			{kind: "moon.GridListImageItem", imageSizing: "cover", useSubCaption:false, centered:false, bindings: [
+		{kind: DataGridList, fit:true, name: "resultList", minWidth: 250, minHeight: 300, ontap: "itemSelected", components: [
+			{kind: GridListImageItem, imageSizing: "cover", useSubCaption:false, centered:false, bindings: [
 				{from: "model.title", to:"caption"},
 				{from: "model.thumbnail", to:"source"}
 			]}
@@ -113,29 +143,29 @@ enyo.kind({
 	},
 	itemSelected: function(inSender, inEvent) {
 		this.photos.set("selected", inEvent.model);
-		this.doRequestPushPanel({panel: {kind: "flickr.DetailPanel", model: inEvent.model}});
+		this.doRequestPushPanel({panel: {kind: DetailPanel, model: inEvent.model}});
 	},
 	startSlideshow: function() {
 		this.doRequestSlideshowStart();
 	}
 });
 
-enyo.kind({
-	name: "flickr.DetailPanel",
-	kind: "moon.Panel",
+var DetailPanel = kind({
+	name: "DetailPanel",
+	kind: Panel,
 	events: {
 		onRequestFullScreen: ""
 	},
 	layoutKind: "FittableColumnsLayout",
 	components: [
-		{kind: "moon.Image", name: "image", fit: true, sizing:"contain", ontap:"requestFullScreen"}
+		{kind: MoonImage, name: "image", fit: true, sizing:"contain", ontap:"requestFullScreen"}
 	],
 	headerComponents: [
-		{kind: "moon.Button", ontap:"requestFullScreen", small:true, content:"View Fullscreen"},
-		{kind: "moon.ContextualPopupDecorator", components: [
-			{kind: "moon.ContextualPopupButton", small: true, content: "QR Code"},
-			{kind: "moon.ContextualPopup", components: [
-				{kind: "enyo.Image", name:"qr", style:"height: 300px; width: 300px;"}
+		{kind: Button, ontap:"requestFullScreen", small:true, content:"View Fullscreen"},
+		{kind: ContextualPopupDecorator, components: [
+			{kind: ContextualPopupButton, small: true, content: "QR Code"},
+			{kind: ContextualPopup, components: [
+				{kind: Image, name:"qr", style:"height: 300px; width: 300px;"}
 			]}
 		]}
 	],

@@ -4,9 +4,22 @@
 	these kind definitions into multiple files under this folder.
 */
 
-enyo.kind({
+var
+	kind = require(enyo/kind),
+	JsonpSource = require(enyo/JsonpSource),
+	Model = require(enyo/Model),
+	Collection = require(enyo/Collection);
+
+module.exports = {
+     Source: Source,
+     ImageModel: ImageModel,
+     SearchCollection: SearchCollection
+ };
+
+
+var Source = kind({
 	name: "flickr.Source",
-	kind: "enyo.JsonpSource",
+	kind: JsonpSource,
 	urlRoot: "https://api.flickr.com/services/rest/",
 	fetch: function(rec, opts) {
 		opts.callbackName = "jsoncallback";
@@ -17,11 +30,11 @@ enyo.kind({
 	}
 });
 
-new flickr.Source({name: "flickr"});
+new Source({name: "flickr"});
 
-enyo.kind({
+var ImageModel = kind({
 	name: "flickr.ImageModel",
-	kind: "enyo.Model",
+	kind: Model,
 	options: { parse: true },
 	source: "flickr",
 	computed: [
@@ -54,10 +67,10 @@ enyo.kind({
 	}
 });
 
-enyo.kind({
+var SearchCollection = kind({
 	name: "flickr.SearchCollection",
-	kind: "enyo.Collection",
-	model: "flickr.ImageModel",
+	kind: Collection,
+	model: ImageModel,
 	source: "flickr",
 	options: { parse: true },
 	published: {
