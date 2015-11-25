@@ -1,0 +1,6 @@
+{
+  "main": "views.js",
+  "styles": [
+    "views.less"
+  ]
+}

@@ -20,5 +20,4 @@ var
 
 ready(function () {
 	new MyApp({name: "app"});
-
 });

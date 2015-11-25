@@ -5,17 +5,11 @@
 */
 
 var
-	kind = require(enyo/kind),
-	JsonpSource = require(enyo/JsonpSource),
-	Model = require(enyo/Model),
-	Collection = require(enyo/Collection);
-
-module.exports = {
-     Source: Source,
-     ImageModel: ImageModel,
-     SearchCollection: SearchCollection
- };
-
+	kind = require('enyo/kind'),
+	utils = require('enyo/utils'),
+	JsonpSource = require('enyo/JsonpSource'),
+	Model = require('enyo/Model'),
+	Collection = require('enyo/Collection');
 
 var Source = kind({
 	name: "flickr.Source",
@@ -23,7 +17,7 @@ var Source = kind({
 	urlRoot: "https://api.flickr.com/services/rest/",
 	fetch: function(rec, opts) {
 		opts.callbackName = "jsoncallback";
-		opts.params = enyo.clone(rec.params);
+		opts.params = utils.clone(rec.params);
 		opts.params.api_key = "2a21b46e58d207e4888e1ece0cb149a5";
 		opts.params.format = "json";
 		this.inherited(arguments);
@@ -93,3 +87,9 @@ var SearchCollection = kind({
 		return data && data.photos && data.photos.photo;
 	}
 });
+
+module.exports = {
+     Source: Source,
+     ImageModel: ImageModel,
+     SearchCollection: SearchCollection
+ };
