@@ -88,11 +88,6 @@ var DetailPanel = kind({
 			return val ? "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(val) : "";
 		}}
 	],
-	transitionFinished: function(inInfo) {
-		if (inInfo.from < inInfo.to) {
-			this.model.fetch();
-		}
-	},
 	requestFullScreen: function() {
 		this.doRequestFullScreen({model: this.model});
 	}
