@@ -1,5 +1,5 @@
 /**
-	Define and instantiate your enyo.Application kind in this file.  Note,
+	Define and instantiate your Application kind in this file.  Note,
 	application rendering should be deferred until DOM is ready by wrapping
 	it in a call to ready().
 */
@@ -12,12 +12,12 @@ var
 var
 	Application = require('enyo/Application');
 
-	var MyApp = module.exports = kind({
-	name: "Flickr.Application",
+var MyApp = module.exports = kind({
+	name: 'Flickr.Application',
 	kind: Application,
-	view: view.MainView
+	view: view
 });
 
 ready(function () {
-	new MyApp({name: "app"});
+	new MyApp({name: 'app'});
 });
