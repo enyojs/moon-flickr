@@ -7,9 +7,6 @@
 [submodule "lib/layout"]
 	path = lib/layout
 	url = ../layout.git
-[submodule "enyo"]
-	path = enyo
-	url = ../enyo.git
 [submodule "lib/enyo-cordova"]
 	path = lib/enyo-cordova
 	url = ../enyo-cordova.git
@@ -19,6 +16,3 @@
 [submodule "lib/enyo-ilib"]
 	path = lib/enyo-ilib
 	url = ../enyo-ilib.git
-[submodule "deploy/gh-pages"]
-	path = deploy/gh-pages
-	url = git@github.com:enyojs/moon-flickr.git
