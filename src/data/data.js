@@ -15,7 +15,7 @@ var Source = kind({
 	name: 'flickr.Source',
 	kind: JsonpSource,
 	urlRoot: 'https://api.flickr.com/services/rest/',
-	fetch: function(rec, opts) {
+	fetch: function (rec, opts) {
 		opts.callbackName = 'jsoncallback';
 		opts.params = utils.clone(rec.params);
 		opts.params.api_key = '2a21b46e58d207e4888e1ece0cb149a5';
@@ -35,24 +35,24 @@ var ImageModel = kind({
 		{method: 'thumbnail', path: ['farm', 'server', 'id', 'secret']},
 		{method: 'original', path: ['farm', 'server', 'id', 'secret']}
 	],
-	thumbnail: function() {
+	thumbnail: function () {
 		return 'https://farm' + this.get('farm') +
 			'.static.flickr.com/' + this.get('server') +
 			'/' + this.get('id') + '_' + this.get('secret') + '_m.jpg';
 	},
-	original: function() {
+	original: function () {
 		return 'https://farm' + this.get('farm') +
 			'.static.flickr.com/' + this.get('server') +
 			'/' + this.get('id') + '_' + this.get('secret') + '.jpg';
 	},
-	fetch: function(opts) {
+	fetch: function (opts) {
 		this.params = {
 			method: 'flickr.photos.getinfo',
 			photo_id: this.get('id')
 		};
 		return this.inherited(arguments);
 	},
-	parse: function(data) {
+	parse: function (data) {
 		data = data.photo || data;
 		data.title = data.title._content || data.title;
 		data.username = data.owner && data.owner.realname;
@@ -70,11 +70,11 @@ var SearchCollection = kind({
 	published: {
 		searchText: null
 	},
-	searchTextChanged: function() {
+	searchTextChanged: function () {
 		this.empty({destroy: true});
 		this.fetch();
 	},
-	fetch: function(opts) {
+	fetch: function (opts) {
 		this.params = {
 			method: 'flickr.photos.search',
 			sort: 'interestingness-desc',
@@ -83,7 +83,7 @@ var SearchCollection = kind({
 		};
 		return this.inherited(arguments);
 	},
-	parse: function(data) {
+	parse: function (data) {
 		return data && data.photos && data.photos.photo;
 	}
 });
